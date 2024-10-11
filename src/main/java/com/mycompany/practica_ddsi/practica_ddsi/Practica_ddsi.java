@@ -11,6 +11,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import Modelo.*;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 
 /**
@@ -26,6 +27,9 @@ public class Practica_ddsi {
         System.out.println(" ---- ----  MENU  ---- ---- ");
         System.out.println("1. Informacion completa de los socios (HQL)");
         System.out.println("2. Informacion completa de los socios (SQL)");
+        System.out.println("3. Informacion completa de los socios (Consulta Nombrada)");
+        System.out.println("4. Nombres y telefonos de todos los socios");
+        System.out.println("5. Socios por categoria");
         System.out.println("9. Salir ");
 
         for (int i = 0; i < 3; i++);
@@ -112,7 +116,16 @@ public class Practica_ddsi {
                     tr = session.beginTransaction();
 
                     try {
-                        
+                        Query query = session.createNamedQuery("Socio.findAll", Socio.class);
+                        ArrayList<Socio> socios = (ArrayList<Socio>) query.getResultList();
+
+                        for (Socio socio : socios) {
+                            System.out.println("Numero socio: " + socio.getNumeroSocio() + ", Nombre: " + socio.getNombre()
+                                    + ", DNI: " + socio.getDni() + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
+                                    + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
+                                    + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
+                        }
+
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -121,7 +134,58 @@ public class Practica_ddsi {
                             session.close();
                         }
                     }
-                    
+
+                    break;
+
+                case 4:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    try {
+                        Query query = session.createQuery("SELECT s.nombre, s.telefono FROM Socio s");
+                        ArrayList<Object[]> socios = (ArrayList<Object[]>) query.list();
+
+                        for (Object[] socio : socios) {
+                            System.out.println("Nombre: " + socio[0] + ", Telefono: " + socio[1]);
+                        }
+
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+
+                    break;
+
+                case 5:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    // solicito los datos
+                    in.nextLine();
+                    System.out.print("Introduce la categoria de busqueda: ");
+                    String cat = in.nextLine().toUpperCase();
+                    char categoria = cat.charAt(0);
+                    try {
+                        Query query = session.createQuery("SELECT s.nombre, s.categoria FROM Socio s WHERE s.categoria = :categoria").setParameter("categoria", categoria);
+                        ArrayList<Object[]> sociosPorCat = (ArrayList<Object[]>) query.list();
+
+                        for (Object[] socio : sociosPorCat) {
+                            System.out.println("Nombre: " + socio[0] + ", Categoria: " + socio[1]);
+                        }
+
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+
                     break;
 
                 case 9:
