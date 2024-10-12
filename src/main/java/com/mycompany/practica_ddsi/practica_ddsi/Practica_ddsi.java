@@ -30,6 +30,9 @@ public class Practica_ddsi {
         System.out.println("3. Informacion completa de los socios (Consulta Nombrada)");
         System.out.println("4. Nombres y telefonos de todos los socios");
         System.out.println("5. Socios por categoria");
+        System.out.println("6. Monitor por nick");
+        System.out.println("7. Informacion de un socio por su nombre");
+        System.out.println("8. Informacion de actividades por dia y cuota");
         System.out.println("9. Salir ");
 
         for (int i = 0; i < 3; i++);
@@ -188,7 +191,77 @@ public class Practica_ddsi {
 
                     break;
 
-                case 9:
+                case 6:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    System.out.print("Introduce el nick del monitor: ");
+                    in.nextLine();
+                    String nick = in.nextLine();
+
+                    try {
+                        Query query = session.createQuery("SELECT m.nombre FROM Monitor m WHERE m.nick=:nick").setParameter("nick", nick);
+                        String nomMonitor = (String) query.getSingleResult();
+
+                        System.out.println("Nombre del monitor: " + nomMonitor);
+
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+
+                case 7:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    System.out.print("Introduce el nombre del socio: ");
+                    in.nextLine();
+                    String nombre = in.nextLine();
+
+                    try {
+                        Query query = session.createNamedQuery("Socio.findByNombre").setParameter("nombre", nombre);
+                        Socio socio = (Socio) query.getSingleResult();
+
+                        System.out.println("Numero socio: " + socio.getNumeroSocio() + ", Nombre: " + socio.getNombre()
+                                + ", DNI: " + socio.getDni() + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
+                                + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
+                                + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+                    
+                case 8:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+                    
+                    in.nextLine();
+                    System.out.print("Introduce el dia de la semana: ");
+                    String dia = in.nextLine();
+                    System.out.print("Introduce la cuota minima: ");
+                    int cuota = in.nextInt();
+                    
+                    try {
+                        Query query = session.createQuery("SELECT a FROM Actividad a WHERE dia=:dia AND ")
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    }finally {
+                        if(session != null && session.isOpen())
+                            session.close();
+                    }
+                    break;
+                case 11:
                     System.out.println("Saliendo del programa...");
                     break;
 
@@ -196,7 +269,7 @@ public class Practica_ddsi {
                     System.out.println("Algo ha ido mal...");
             }
 
-        } while (el != 9);
+        } while (el != 11);
 
     }
 }
