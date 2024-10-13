@@ -247,12 +247,22 @@ public class Practica_ddsi {
                     
                     in.nextLine();
                     System.out.print("Introduce el dia de la semana: ");
+                    in.nextLine();
                     String dia = in.nextLine();
                     System.out.print("Introduce la cuota minima: ");
-                    int cuota = in.nextInt();
+                    int precioMin = in.nextInt();
                     
                     try {
-                        Query query = session.createQuery("SELECT a FROM Actividad a WHERE dia=:dia AND ")
+                        Query query = session.createQuery("SELECT a FROM Actividad a WHERE a.dia:=dia AND precioBaseMes:=precioMin").setParameter("dia", dia).setParameter("precioBaseMes", precioMin);
+                        ArrayList<Actividad> actividades = (ArrayList<Actividad>) query.getResultList();
+                        
+                        for(Actividad actividad : actividades) {
+                            System.out.println("idActividad: " + actividad.getIdActividad() + ", Nombre: " + actividad.getNombre() +
+                                    ", Dia " + actividad.getDia() + ", Hora: " + actividad.getHora() + ", Descripcion: " + 
+                                    actividad.getDescripcion() + ", Precio base: " + actividad.getPrecioBaseMes() + "Monitor Responsable: "
+                                    + actividad.getMonitorResponsable());
+                        }
+                        
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
