@@ -33,7 +33,8 @@ public class Practica_ddsi {
         System.out.println("6. Monitor por nick");
         System.out.println("7. Informacion de un socio por su nombre");
         System.out.println("8. Informacion de actividades por dia y cuota");
-        System.out.println("9. Salir ");
+        System.out.println("9. Informacion de los socios por categoria (Consulta nombrada HQL)");
+        System.out.println("11. Salir ");
 
         for (int i = 0; i < 3; i++);
         System.out.println("\n");
@@ -240,36 +241,67 @@ public class Practica_ddsi {
                         }
                     }
                     break;
-                    
+
                 case 8:
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
-                    
+
                     in.nextLine();
                     System.out.print("Introduce el dia de la semana: ");
-                    in.nextLine();
                     String dia = in.nextLine();
                     System.out.print("Introduce la cuota minima: ");
-                    int precioMin = in.nextInt();
-                    
+                    int precioBaseMes = in.nextInt();
+
                     try {
-                        Query query = session.createQuery("SELECT a FROM Actividad a WHERE a.dia:=dia AND precioBaseMes:=precioMin").setParameter("dia", dia).setParameter("precioBaseMes", precioMin);
+                        Query query = session.createQuery("FROM Actividad a WHERE a.dia=:dia AND a.precioBaseMes>=:precioBaseMes").setParameter("dia", dia).setParameter("precioBaseMes", precioBaseMes);
                         ArrayList<Actividad> actividades = (ArrayList<Actividad>) query.getResultList();
-                        
-                        for(Actividad actividad : actividades) {
-                            System.out.println("idActividad: " + actividad.getIdActividad() + ", Nombre: " + actividad.getNombre() +
-                                    ", Dia " + actividad.getDia() + ", Hora: " + actividad.getHora() + ", Descripcion: " + 
-                                    actividad.getDescripcion() + ", Precio base: " + actividad.getPrecioBaseMes() + "Monitor Responsable: "
+
+                        for (Actividad actividad : actividades) {
+                            System.out.println("idActividad: " + actividad.getIdActividad() + ", Nombre: " + actividad.getNombre()
+                                    + ", Dia " + actividad.getDia() + ", Hora: " + actividad.getHora() + ", Descripcion: "
+                                    + actividad.getDescripcion() + ", Precio base: " + actividad.getPrecioBaseMes() + ", Monitor Responsable: "
                                     + actividad.getMonitorResponsable());
                         }
-                        
+
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
-                    }finally {
-                        if(session != null && session.isOpen())
+                    } finally {
+                        if (session != null && session.isOpen()) {
                             session.close();
+                        }
                     }
+                    break;
+
+                case 9:
+                    // TENGO DUDAS DE SI ESTA BIEN PORQUE MENCIONA MEDIANTE UNA CONSULTA NOMBRADA EN HQL (¡!)
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    in.nextLine();
+                    System.out.print("Introduce la categoria de busqueda: ");
+                    cat = in.nextLine().toUpperCase();
+                    categoria = cat.charAt(0);
+                    try {
+                        Query query = session.createNamedQuery("Socio.findByCategoria").setParameter("categoria", categoria);
+                        ArrayList<Socio> socios = (ArrayList<Socio>) query.getResultList();
+
+                        for (Socio socio : socios) {
+                            System.out.println("Numero socio: " + socio.getNumeroSocio() + ", Nombre: " + socio.getNombre()
+                                    + ", DNI: " + socio.getDni() + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
+                                    + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
+                                    + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
+                        }
+
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+
                     break;
                 case 11:
                     System.out.println("Saliendo del programa...");
@@ -279,7 +311,8 @@ public class Practica_ddsi {
                     System.out.println("Algo ha ido mal...");
             }
 
-        } while (el != 11);
+        } while (el
+                != 11);
 
     }
 }
