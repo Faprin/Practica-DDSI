@@ -34,6 +34,7 @@ public class Practica_ddsi {
         System.out.println("7. Informacion de un socio por su nombre");
         System.out.println("8. Informacion de actividades por dia y cuota");
         System.out.println("9. Informacion de los socios por categoria (Consulta nombrada HQL)");
+        System.out.println("10. Informacion de los socios por categoria (Consulta nombrada SQL)");
         System.out.println("11. Salir ");
 
         for (int i = 0; i < 3; i++);
@@ -77,6 +78,7 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -103,7 +105,8 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
-
+                        tr.commit();
+                        
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -129,6 +132,7 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -152,6 +156,7 @@ public class Practica_ddsi {
                         for (Object[] socio : socios) {
                             System.out.println("Nombre: " + socio[0] + ", Telefono: " + socio[1]);
                         }
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -180,6 +185,7 @@ public class Practica_ddsi {
                         for (Object[] socio : sociosPorCat) {
                             System.out.println("Nombre: " + socio[0] + ", Categoria: " + socio[1]);
                         }
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -205,6 +211,7 @@ public class Practica_ddsi {
                         String nomMonitor = (String) query.getSingleResult();
 
                         System.out.println("Nombre del monitor: " + nomMonitor);
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -232,6 +239,8 @@ public class Practica_ddsi {
                                 + ", DNI: " + socio.getDni() + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
                                 + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                 + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
+                        tr.commit();
+                        
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -262,6 +271,7 @@ public class Practica_ddsi {
                                     + actividad.getDescripcion() + ", Precio base: " + actividad.getPrecioBaseMes() + ", Monitor Responsable: "
                                     + actividad.getMonitorResponsable());
                         }
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -302,6 +312,36 @@ public class Practica_ddsi {
                         }
                     }
 
+                    break;
+
+                case 10:
+                    // NO TERMINADO RESOLVER DUDAS SOBRE ESTE CASE Y EL ANTERIOR EN PRÁCTICAS
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    in.nextLine();
+                    System.out.print("Introduzca la categoria de busqueda: ");
+                    cat = in.nextLine().toUpperCase();
+                    categoria = cat.charAt(0);
+                    try {
+                        Query query = session.createNamedQuery("Socio.findByCategoriaNativo").setParameter("categoria", categoria);
+                        ArrayList<Socio> socios = (ArrayList<Socio>) query.getResultList();
+
+                        for (Socio socio : socios) {
+                            System.out.println("Numero socio: " + socio.getNumeroSocio() + ", Nombre: " + socio.getNombre()
+                                    + ", DNI: " + socio.getDni() + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
+                                    + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
+                                    + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
+                        }
+
+                    } catch (Exception ex) {
+                        tr.rollback();
+                        System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
                     break;
                 case 11:
                     System.out.println("Saliendo del programa...");
