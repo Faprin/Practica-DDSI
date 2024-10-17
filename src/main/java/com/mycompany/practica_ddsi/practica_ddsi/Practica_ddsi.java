@@ -35,7 +35,9 @@ public class Practica_ddsi {
         System.out.println("8. Informacion de actividades por dia y cuota");
         System.out.println("9. Informacion de los socios por categoria (Consulta nombrada HQL)");
         System.out.println("10. Informacion de los socios por categoria (Consulta nombrada SQL)");
-        System.out.println("11. Salir ");
+        System.out.println("11. Insertar un Socio");
+        System.out.println("12. Eliminar un socio por DNI");
+        System.out.println("0. Salir ");
 
         for (int i = 0; i < 3; i++);
         System.out.println("\n");
@@ -63,6 +65,10 @@ public class Practica_ddsi {
             el = in.nextInt();
 
             switch (el) {
+                case 0:
+                    System.out.println("");
+                    System.out.println("Saliendo del programa ...");
+                    break;
                 case 1:
                     Session session = sessionFactory.openSession();
                     Transaction tr = session.beginTransaction();
@@ -284,7 +290,6 @@ public class Practica_ddsi {
                     break;
 
                 case 9:
-                    // TENGO DUDAS DE SI ESTA BIEN PORQUE MENCIONA MEDIANTE UNA CONSULTA NOMBRADA EN HQL (¡!)
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
 
@@ -302,6 +307,8 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
+                        
+                        tr.commit();
 
                     } catch (Exception ex) {
                         tr.rollback();
@@ -315,7 +322,6 @@ public class Practica_ddsi {
                     break;
 
                 case 10:
-                    // NO TERMINADO RESOLVER DUDAS SOBRE ESTE CASE Y EL ANTERIOR EN PRÁCTICAS
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
 
@@ -324,7 +330,7 @@ public class Practica_ddsi {
                     cat = in.nextLine().toUpperCase();
                     categoria = cat.charAt(0);
                     try {
-                        Query query = session.createNamedQuery("Socio.findByCategoriaNativo").setParameter("categoria", categoria);
+                        Query query = session.createNamedQuery("Socio.findByCategoriaNativo", Socio.class).setParameter("categoria", categoria);
                         ArrayList<Socio> socios = (ArrayList<Socio>) query.getResultList();
 
                         for (Socio socio : socios) {
@@ -333,7 +339,7 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
-
+                        tr.commit();
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -344,7 +350,69 @@ public class Practica_ddsi {
                     }
                     break;
                 case 11:
-                    System.out.println("Saliendo del programa...");
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+                    
+                    // necesitamos pedir todos los datos
+                    in.nextLine();
+                    System.out.print("Numero de Socio: ");
+                    String numSocio = in.nextLine();
+                    
+                    System.out.print("Nombre: ");
+                    String nom = in.nextLine();
+                    
+                    System.out.print("DNI (incluyendo la letra): ");
+                    String dni = in.nextLine();
+                    
+                    System.out.print("Fecha de nacimiento (dd/mm/yyyy): ");
+                    String fechaNac = in.nextLine();
+                    
+                    System.out.print("Telefono: ");
+                    String telefono = in.nextLine();
+                    
+                    System.out.print("Correo electronico: ");
+                    String correo = in.nextLine();
+                    
+                    System.out.print("Fecha de entrada: ");
+                    String fechaEntrada = in.nextLine();
+                    
+                    System.out.print("Categoria: ");
+                    cat = in.nextLine().toUpperCase();
+                    categoria = cat.charAt(0);
+                    
+                    try {
+                        Socio socio = new Socio(numSocio, nom, dni, fechaNac, telefono, correo, fechaEntrada, categoria);
+                        session.saveOrUpdate(socio);
+                        
+                        tr.commit();
+                    } catch (Exception ex) {
+                        System.out.println("ERROR: No se ha podido insertar al socio -> " + ex.getMessage());
+                    } finally {
+                        if(session != null && session.isOpen()){
+                            session.close();
+                        }
+                    }
+                    
+                    break;
+                    
+                case 12:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+                    
+                    System.out.print("DNI: ");
+                    in.nextLine(); dni = in.nextLine();
+                    
+                    try{
+                        Socio socio = session.get(Socio.class, dni);
+                        session.delete(socio);
+                        tr.commit();
+                    } catch (Exception ex) {
+                        System.out.println("No se ha podido eliminar al socio con dni " + dni + " -> " + ex.getMessage());
+                    } finally {
+                        if(session != null && session.isOpen())
+                            session.close();
+                    }
+                    
                     break;
 
                 default:
@@ -352,7 +420,7 @@ public class Practica_ddsi {
             }
 
         } while (el
-                != 11);
+                != 0);
 
     }
 }

@@ -12,6 +12,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -34,8 +36,11 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Socio.findByTelefono", query = "SELECT s FROM Socio s WHERE s.telefono = :telefono"),
     @NamedQuery(name = "Socio.findByCorreo", query = "SELECT s FROM Socio s WHERE s.correo = :correo"),
     @NamedQuery(name = "Socio.findByFechaEntrada", query = "SELECT s FROM Socio s WHERE s.fechaEntrada = :fechaEntrada"),
-    /*@NamedQuery(name = "Socio.findByCategoriaNativo" , query = "SELECT * FROM SOCIO s WHERE s.categoria=:categoria"),*/
-    @NamedQuery(name = "Socio.findByCategoria", query = "SELECT s FROM Socio s WHERE s.categoria = :categoria")})
+    @NamedQuery(name = "Socio.findByCategoria", query = "FROM Socio s WHERE s.categoria = :categoria")})
+
+@NamedNativeQueries({
+    @NamedNativeQuery(name = "Socio.findByCategoriaNativo", query = "SELECT * FROM SOCIO s WHERE s.categoria=:categoria", resultClass = Socio.class)})
+
 public class Socio implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -77,6 +82,17 @@ public class Socio implements Serializable {
         this.dni = dni;
         this.fechaEntrada = fechaEntrada;
         this.categoria = categoria;
+    }
+
+    public Socio(String numeroSocio, String nombre, String dni, String fechaNac, String telefono, String correo, String fechaEntrada, Character categoria) {
+        this.numeroSocio = numeroSocio;
+        this.nombre = nombre;
+        this.dni = dni;
+        this.fechaEntrada = fechaEntrada;
+        this.categoria = categoria;
+        this.fechaNacimiento = fechaNac;
+        this.telefono = telefono;
+        this.correo = correo;
     }
 
     public String getNumeroSocio() {
@@ -176,5 +192,5 @@ public class Socio implements Serializable {
     public String toString() {
         return "Modelo.Socio[ numeroSocio=" + numeroSocio + " ]";
     }
-    
+
 }
