@@ -145,6 +145,10 @@ public class Actividad implements Serializable {
     public void setMonitorResponsable(Monitor monitorResponsable) {
         this.monitorResponsable = monitorResponsable;
     }
+    
+    public void altaEnActividad(Socio socio) {
+        socio.getActividades().add(this);
+    }
 
     @Override
     public int hashCode() {

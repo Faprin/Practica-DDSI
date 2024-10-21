@@ -42,6 +42,7 @@ public class Practica_ddsi {
         System.out.println("13. Informacion de las actividades de la que es respondable un monitor (DNI)");
         System.out.println("14. Actividades en las que esta inscrito un socio (DNI)");
         System.out.println("15. Informacion de los socios inscritos en una actividad por nombre de la actividad");
+        System.out.println("16. Inscripcion de un socio en una actividad");
         System.out.println("0. Salir ");
 
         for (int i = 0; i < 2; i++);
@@ -551,10 +552,10 @@ public class Practica_ddsi {
                                         + ", Fecha de Entrada: " + socio.getFechaEntrada()
                                         + ", Categoria: " + socio.getCategoria());
                             }
-                        }else {
+                        } else {
                             System.out.println("No se ha encontrado ninguna actividad con el nombre " + nomActividad);
                         }
-                        
+
                         tr.commit();
                     } catch (Exception e) {
                         tr.rollback();
@@ -562,6 +563,37 @@ public class Practica_ddsi {
                     }
                     break;
 
+                case 16:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    String idActividad,
+                     numeroSocio;
+                    in.nextLine();
+                    System.out.print("Codigo del socio: ");
+                    numeroSocio = in.nextLine();
+                    System.out.print("Codigo de la actividad");
+                    in.nextLine();
+                    idActividad = in.nextLine();
+
+                    try {
+
+                        Socio socio = session.get(Socio.class, numeroSocio);
+                        Actividad actividad = session.get(Actividad.class, idActividad);
+                        actividad.altaEnActividad(socio);
+                        session.saveOrUpdate(actividad);
+                        session.saveOrUpdate(socio);
+                        tr.commit();
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("No se ha podido insertar el socio con numeroSocio " + numeroSocio + " y actividad " + idActividad);
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+
+                    break;
                 default:
                     System.out.println("Algo ha ido mal...");
             }
