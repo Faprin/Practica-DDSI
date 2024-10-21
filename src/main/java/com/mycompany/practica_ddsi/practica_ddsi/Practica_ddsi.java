@@ -13,6 +13,7 @@ import org.hibernate.query.Query;
 import Modelo.*;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.FormatProcessor;
 
 /**
  *
@@ -37,6 +38,7 @@ public class Practica_ddsi {
         System.out.println("10. Informacion de los socios por categoria (Consulta nombrada SQL)");
         System.out.println("11. Insertar un Socio");
         System.out.println("12. Eliminar un socio por DNI");
+        System.out.println("13. Informacion de las actividades de la que es respondable un monitor (DNI)");
         System.out.println("0. Salir ");
 
         for (int i = 0; i < 3; i++);
@@ -112,7 +114,7 @@ public class Practica_ddsi {
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
                         tr.commit();
-                        
+
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -246,7 +248,7 @@ public class Practica_ddsi {
                                 + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                 + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         tr.commit();
-                        
+
                     } catch (Exception ex) {
                         tr.rollback();
                         System.out.println("ERROR: No se ha podido finalizar la consulta -> " + ex.getMessage());
@@ -307,7 +309,7 @@ public class Practica_ddsi {
                                     + ", Telefono: " + socio.getTelefono() + ", Correo: " + socio.getCorreo()
                                     + ", Fecha de Entrada: " + socio.getFechaEntrada() + ", Categoria: " + socio.getCategoria());
                         }
-                        
+
                         tr.commit();
 
                     } catch (Exception ex) {
@@ -352,67 +354,103 @@ public class Practica_ddsi {
                 case 11:
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
-                    
+
                     // necesitamos pedir todos los datos
                     in.nextLine();
                     System.out.print("Numero de Socio: ");
                     String numSocio = in.nextLine();
-                    
+
                     System.out.print("Nombre: ");
                     String nom = in.nextLine();
-                    
+
                     System.out.print("DNI (incluyendo la letra): ");
                     String dni = in.nextLine();
-                    
+
                     System.out.print("Fecha de nacimiento (dd/mm/yyyy): ");
                     String fechaNac = in.nextLine();
-                    
+
                     System.out.print("Telefono: ");
                     String telefono = in.nextLine();
-                    
+
                     System.out.print("Correo electronico: ");
                     String correo = in.nextLine();
-                    
+
                     System.out.print("Fecha de entrada: ");
                     String fechaEntrada = in.nextLine();
-                    
+
                     System.out.print("Categoria: ");
                     cat = in.nextLine().toUpperCase();
                     categoria = cat.charAt(0);
-                    
+
                     try {
                         Socio socio = new Socio(numSocio, nom, dni, fechaNac, telefono, correo, fechaEntrada, categoria);
                         session.saveOrUpdate(socio);
-                        
+
                         tr.commit();
                     } catch (Exception ex) {
+                        tr.rollback();
                         System.out.println("ERROR: No se ha podido insertar al socio -> " + ex.getMessage());
                     } finally {
-                        if(session != null && session.isOpen()){
+                        if (session != null && session.isOpen()) {
                             session.close();
                         }
                     }
-                    
+
                     break;
-                    
+
                 case 12:
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
-                    
+
                     System.out.print("DNI: ");
-                    in.nextLine(); dni = in.nextLine();
-                    
-                    try{
-                        Socio socio = session.get(Socio.class, dni);
-                        session.delete(socio);
+                    in.nextLine();
+                    dni = in.nextLine();
+
+                    try {
+                        // dni no es la pk, es id
+                        Query query = session.createQuery("FROM Socio s WHERE s.dni=:dni").setParameter("dni", dni);
+                        Socio soc = (Socio) query.getSingleResult();
+                        session.delete(soc);
                         tr.commit();
+                        System.out.println("El socio con nombre " + soc.getNombre() + " y numero " + soc.getNumeroSocio() + " ha sido eliminado correctamente");
                     } catch (Exception ex) {
+                        tr.rollback();
                         System.out.println("No se ha podido eliminar al socio con dni " + dni + " -> " + ex.getMessage());
                     } finally {
-                        if(session != null && session.isOpen())
+                        if (session != null && session.isOpen()) {
                             session.close();
+                        }
                     }
+
+                    break;
+
+                case 13:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    System.out.print("DNI: ");
+                    in.nextLine();
+                    dni = in.nextLine();
                     
+                    try {
+                        Query query = session.createQuery("FROM Monitor m JOIN Actividad a WHERE a.monitorResponsable.dni=:dni").setParameter("dni", dni);
+                        ArrayList<Actividad> actividades = (ArrayList<Actividad>) query.getResultList();
+                        
+                        for(Actividad actividad : actividades){
+                            System.out.println("Nombre Actividad: " + actividad.getNombre() + ", dia: " + actividad.getDia() + ", hora: " + actividad.getHora()
+                                    + ", descripcion: " + actividad.getDescripcion() + ", precioBaseMes: " + actividad.getPrecioBaseMes() + 
+                                    ", Monitor Responsable: " + actividad.getMonitorResponsable());
+                        }
+                        tr.commit();
+                        System.out.println("");
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("No se ha podido recuperar la iformacion sobre la actividad que lleva a cabo el monitor con dni " + dni + " -> " + e.getMessage());
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
                     break;
 
                 default:
