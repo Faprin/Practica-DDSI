@@ -11,7 +11,9 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import Modelo.*;
+import com.sun.xml.bind.v2.runtime.output.SAXOutput;
 import java.awt.BorderLayout;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.FormatProcessor;
 import java.util.List;
@@ -43,6 +45,11 @@ public class Practica_ddsi {
         System.out.println("14. Actividades en las que esta inscrito un socio (DNI)");
         System.out.println("15. Informacion de los socios inscritos en una actividad por nombre de la actividad");
         System.out.println("16. Inscripcion de un socio en una actividad");
+        System.out.println("17. Baja de un socio de una actividad");
+        System.out.println("18. Mostrar el horario de un monitor (DNI)");
+        System.out.println("19. Mostrar la cuota que paga un socio (codigoSocio)");
+        System.out.println("20. Mostrar los socios que sean mayor de edad (establecida)");
+
         System.out.println("0. Salir ");
 
         for (int i = 0; i < 2; i++);
@@ -566,27 +573,65 @@ public class Practica_ddsi {
                 case 16:
                     session = sessionFactory.openSession();
                     tr = session.beginTransaction();
+                    // Inscripcion de un socio en una actividad -> por codigo de socio y de actividad
+                    in.nextLine();
+                    System.out.print("Codigo de socio: ");
+                    String numeroSocio = in.nextLine();
+                    System.out.print("Codigo de actividad: ");
+                    String idActividad = in.nextLine();
 
-                    String idActividad,
-                     numeroSocio;
+                    try {
+                        Socio socio = session.get(Socio.class, numeroSocio);
+                        Actividad actividad = session.get(Actividad.class, idActividad);
+
+                        if (!socio.getActividades().contains(actividad)) {
+                            actividad.altaSocio(socio);
+                            session.saveOrUpdate(socio);
+                            session.saveOrUpdate(actividad);
+                            System.out.println("El socio " + numeroSocio + " se ha inscrito en la actividad " + idActividad + " correctamente");
+                            tr.commit();
+
+                        } else {
+                            System.out.println("El socio ya existe en la base de datos");
+                        }
+
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("No se ha podido inscribir al socio con codigo " + numeroSocio + " en la actividad " + idActividad);
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+
+                case 17:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
                     in.nextLine();
-                    System.out.print("Codigo del socio: ");
+                    System.out.print("Codigo de socio: ");
                     numeroSocio = in.nextLine();
-                    System.out.print("Codigo de la actividad");
-                    in.nextLine();
+                    System.out.print("Codigo de Actividad: ");
                     idActividad = in.nextLine();
 
                     try {
-
                         Socio socio = session.get(Socio.class, numeroSocio);
                         Actividad actividad = session.get(Actividad.class, idActividad);
-                        actividad.altaEnActividad(socio);
-                        session.saveOrUpdate(actividad);
-                        session.saveOrUpdate(socio);
-                        tr.commit();
+
+                        if (socio.getActividades().contains(actividad)) {
+                            actividad.bajaSocio(socio);
+                            session.saveOrUpdate(socio);
+                            session.saveOrUpdate(actividad);
+                            System.out.println("El socio " + numeroSocio + " se ha dado de baja correctamente en la actividad " + idActividad);
+                            tr.commit();
+                        } else {
+                            System.out.println("El socio no contiene la actividad " + idActividad + " entre sus actividades");
+                        }
+
                     } catch (Exception e) {
                         tr.rollback();
-                        System.out.println("No se ha podido insertar el socio con numeroSocio " + numeroSocio + " y actividad " + idActividad);
+                        System.out.println("El socio " + numeroSocio + " no se ha podido dar de baja de " + idActividad);
                     } finally {
                         if (session != null && session.isOpen()) {
                             session.close();
@@ -594,6 +639,119 @@ public class Practica_ddsi {
                     }
 
                     break;
+
+                case 18:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    in.nextLine();
+                    System.out.print("DNI: ");
+                    dni = in.nextLine();
+
+                    try {
+                        Query query = session.createQuery("SELECT a FROM Monitor m JOIN m.actividades a WHERE m.dni=:dni").setParameter("dni", dni);
+                        List<Actividad> actividades = query.getResultList();
+
+                        if (!actividades.isEmpty()) {
+                            System.out.println("--> Monitor resopnsable " + dni);
+                            for (Actividad actividad : actividades) {
+                                System.out.println("-- Actividad: " + actividad.getNombre() + ", hora: " + actividad.getHora());
+                            }
+
+                            tr.commit();
+                        } else {
+                            System.out.println("El monitor con dni: " + dni + " no es responsable de ninguna actividad");
+                        }
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("No se han podido mostrar los horarios disponibles del monitor con dni " + dni);
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+
+                case 19:
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    in.nextLine();
+                    System.out.println("Codigo socio: ");
+                    numeroSocio = in.nextLine();
+
+                    try {
+                        Socio socio = session.get(Socio.class, numeroSocio);
+                        if (!socio.getActividades().isEmpty()) {
+                            System.out.println("--> Socio: " + numeroSocio);
+                            for (Actividad actividad : socio.getActividades()) {
+                                System.out.println("Nombre: " + actividad.getNombre() + ", cuota: " + actividad.getPrecioBaseMes());
+                            }
+                            tr.commit();
+                        } else {
+                            System.out.println("El socio introucido no contiene actividades activas");
+                        }
+
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("No se ha encontrado al socio " + numeroSocio);
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+
+                case 20:
+                    // mostrar socios mayores de edad -> solicitamos la edad por teclado 
+                    session = sessionFactory.openSession();
+                    tr = session.beginTransaction();
+
+                    in.nextLine();
+                    System.out.println("Edad minima: ");
+                    int edad = in.nextInt();
+                    LocalDate localDate = LocalDate.now();
+                    int anioActual = localDate.getYear();
+
+                    try {
+                        Query query = session.createNamedQuery("Socio.findAll");
+                        List<Socio> socios = query.list();
+
+                        if (!socios.isEmpty()) {
+                            String WOFormat;
+                            String[] bounds = new String[3];
+                            int anioNacimiento = 0;
+                            for (Socio socio : socios) {
+                                WOFormat = socio.getFechaNacimiento();
+                                bounds = WOFormat.split("/");
+                                anioNacimiento = Integer.parseInt(bounds[2]);
+                                if ((anioActual - anioNacimiento) > edad) {
+                                    // entonces lo muestro 
+                                    System.out.println("Numero socio: " + socio.getNumeroSocio()
+                                            + ", Nombre: " + socio.getNombre()
+                                            + ", DNI: " + socio.getDni()
+                                            + ", Fecha de Nacimiento: " + socio.getFechaNacimiento()
+                                            + ", Telefono: " + socio.getTelefono()
+                                            + ", Correo: " + socio.getCorreo()
+                                            + ", Fecha de Entrada: " + socio.getFechaEntrada()
+                                            + ", Categoria: " + socio.getCategoria());
+
+                                }
+                            }
+                            tr.commit();
+                        } else {
+                            System.out.println("No existen socios en la base de datos");
+                        }
+                    } catch (Exception e) {
+                        tr.rollback();
+                        System.out.println("Algo ha ido mal...");
+                    } finally {
+                        if (session != null && session.isOpen()) {
+                            session.close();
+                        }
+                    }
+                    break;
+
                 default:
                     System.out.println("Algo ha ido mal...");
             }

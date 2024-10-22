@@ -169,6 +169,16 @@ public class Actividad implements Serializable {
         }
         return true;
     }
+    
+    public void altaSocio(Socio socio) {
+        this.socios.add(socio);
+        socio.getActividades().add(this);
+    }
+    
+    public void bajaSocio(Socio socio ){
+        this.socios.remove(socio);
+        socio.getActividades().remove(this);
+    }
 
     @Override
     public String toString() {
